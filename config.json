@@ -1,0 +1,23 @@
+{
+  "xls": {
+    "url": "D:/pythonProject/xlstojsonb/xls",
+    "key_id": "id",
+    "type_from": 2,
+    "rule_from": 4,
+    "key_from": 5,
+    "content_from": 6,
+    "decs": "注释：key_id： 主键名 type_from：键值类型行 rule_from：导出规则行  key_from：导出键行 content_from：导出内容行"
+  },
+  "outClientJson": {
+    "url": "D:/pythonProject/xlstojsonb/out/client/json"
+  },
+  "outClientTs": {
+    "url": "D:/pythonProject/xlstojsonb/out/client/ts"
+  },
+  "outServerJson": {
+    "url": "D:/pythonProject/xlstojsonb/out/server/json"
+  },
+  "outServerGo": {
+    "url": "D:/pythonProject/xlstojsonb/out/server/go"
+  }
+}
