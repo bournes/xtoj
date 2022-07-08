@@ -130,12 +130,19 @@ class AppThread():
                                 if cell.value is None:
                                     temp_list_f[key[j]] = 0
                                 else:
-                                    temp_list_f[key[j]] = str(cell.value)
+                                    if type_rule[j] == 'int':
+                                        temp_list_f[key[j]] = int(cell.value)
+                                    else:
+                                        temp_list_f[key[j]] = str(cell.value)
                             if j in skey:
                                 if cell.value is None:
                                     stemp_list_f[skey[j]] = 0
                                 else:
-                                    stemp_list_f[skey[j]] = str(cell.value)
+                                    if type_rule[j] == 'int':
+                                        stemp_list_f[skey[j]] = int(cell.value)
+                                    else:
+                                        stemp_list_f[skey[j]] = str(cell.value)
+
 
                 if temp_list_f != {}:
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
@@ -181,7 +188,7 @@ class AppThread():
 
     def write_file(self, filename, buf):
         totxt = codecs.open(filename, 'w', "utf-8")
-        totxt.write(str(json.dumps(buf)))
+        totxt.write(str(json.dumps(buf,ensure_ascii=False)))
         totxt.close()
 
     def gents(self, file, key, type_rule):
@@ -221,7 +228,7 @@ class AppThread():
 
     def changeInt(self, type):
         if type.lower() == 'int':
-            return 'uint32'
+            return 'uint64'
         else:
             return type
 
