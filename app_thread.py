@@ -10,10 +10,13 @@ import warnings
 from openpyxl import load_workbook
 import traceback
 
+from main import debug
+
 
 class AppThread():
 
-    def __init__(self, file, outClientJson, outClientTs, outServerJson, outServerGo,xls_key_id,xls_type_from,xls_rule_from,xls_key_from,xls_content_from):
+    def __init__(self, file, outClientJson, outClientTs, outServerJson, outServerGo, xls_key_id, xls_type_from,
+                 xls_rule_from, xls_key_from, xls_content_from):
         super(AppThread, self).__init__()
         self.file_list = file
         self.outClientJson = outClientJson
@@ -27,7 +30,7 @@ class AppThread():
         # xls 导出规则开始行
         self.xls_rule_from = xls_rule_from
         # xls 字段开始行
-        self.xls_key_from =xls_key_from
+        self.xls_key_from = xls_key_from
         # xls 内容开始行
         self.xls_content_from = xls_content_from
 
@@ -82,7 +85,7 @@ class AppThread():
                 j = 0
                 for cell in row:
                     j += 1
-                    if i == self.xls_type_from:  #  type
+                    if i == self.xls_type_from:  # type
 
                         if cell.value is not None:
                             # print("type_rule规则", cell.value, j)
@@ -91,7 +94,7 @@ class AppThread():
                         else:
                             continue
 
-                    if i == self.xls_rule_from:  #  rule
+                    if i == self.xls_rule_from:  # rule
                         if cell.value is not None:
                             # print("前端 后端 或略规则", cell.value, j)
                             rule[j] = str(cell.value)
@@ -99,7 +102,7 @@ class AppThread():
                         else:
                             continue
 
-                    if i == self.xls_key_from:  #  key
+                    if i == self.xls_key_from:  # key
 
                         if cell.value is not None:
                             if str(rule[j]).lower() == "client" or str(rule[j]).lower() == "both":
@@ -134,14 +137,10 @@ class AppThread():
                                 else:
                                     stemp_list_f[skey[j]] = str(cell.value)
 
-
-
                 if temp_list_f != {}:
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
                 if stemp_list_f != {}:
                     sdata_dict_f[stemp_list_f[self.xls_key_id]] = stemp_list_f
-
-
 
             if data_dict_f:
                 # client json
@@ -164,12 +163,16 @@ class AppThread():
 
             t1 = time.time()
             if error > 0:
-                print(out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0),
+                print("\n" + out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0),
                       "[有错误未定义类型：" + str(error) + "]")
+                debug("配置表错误！", f[0],'[错误：]',str(error))
             else:
-                print(out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
+                print("\n" + out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
 
         except:
+            debug("配置表错误！", f[0], sys.exc_info())
+            debug(f[0], "key", key)
+            debug(f[0], "type", type_rule)
             print("配置表错误！")
             print(f[0], sys.exc_info())
             print("key", key)
@@ -287,7 +290,7 @@ class AppThread():
         for k in filelist:
             const += '	File' + self.toBigWord(k[0]) + ' string = "' + k[0] + '.json"  \n'
 
-        script = ts_waring + 'package configdef \n\nconst (\n   ' + const + ')\nfunc LoadStrut(fileName string) interface {}  {\n	switch fileName {\n  ' + field + '	default:\n		return nil\n	}\n}'
+        script = ts_waring + 'package configdef \n\nconst (\n   ' + const + ')\nfunc LoadStrut(fileName string) interface {}  {\n	switch fileName {\n  ' + field + '	default:\n		return nil\n	}\n    return nil\n}'
         totxt_b = codecs.open(self.outServerGo + '/configdef.go', 'w', "utf-8")
         totxt_b.write(script)
         totxt_b.close()
