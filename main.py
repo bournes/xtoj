@@ -5,6 +5,30 @@ import sys
 import app_thread
 
 
+# debug
+def debug(*argv):
+    try:
+        msg = ""
+        for v in range(0, len(argv)):
+            msg = msg + str(argv[v]) + " "
+        print("\033[0:91m"+msg+"\033[0m")
+        filewrite = "a"
+        if os.path.exists("log/error.log"):
+            if os.path.getsize("log/error.log") > 2000000:
+                filewrite = "w"
+            with open("log/error.log", filewrite,encoding='utf-8') as f:
+                f.write("{}\n".format(msg))
+                f.close()
+        else:
+            with open("log/error.log", "w", encoding='utf-8') as f:
+                f.write("{}\n".format(msg))
+                f.close()
+
+
+    except:
+        print("log消息出错")
+
+
 class appLogic():
     def __init__(self):
         self.xls_path = ""
@@ -100,3 +124,4 @@ class appLogic():
 
 if __name__ == '__main__':
     appLogic()
+    # os.system("pause")
