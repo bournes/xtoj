@@ -12,6 +12,9 @@ import traceback
 
 from main import debug
 
+gbfield = ""
+gbconst = ""
+
 
 class AppThread():
 
@@ -42,9 +45,6 @@ class AppThread():
 
             for f in self.file_list:
                 threading.Thread(target=self._gen_json, args=([f])).start()
-
-            # 单独开一个线程写GO的总文件
-            threading.Thread(target=self.genConfigGo, args=([self.file_list])).start()
 
         except:
             print(sys.exc_info())
@@ -127,22 +127,9 @@ class AppThread():
                     if i >= self.xls_content_from:  # 内容
                         if j <= len(rule):
                             if j in key:
-                                if cell.value is None:
-                                    temp_list_f[key[j]] = 0
-                                else:
-                                    if type_rule[j] == 'int':
-                                        temp_list_f[key[j]] = int(cell.value)
-                                    else:
-                                        temp_list_f[key[j]] = str(cell.value)
+                                temp_list_f[key[j]] = str(cell.value)
                             if j in skey:
-                                if cell.value is None:
-                                    stemp_list_f[skey[j]] = 0
-                                else:
-                                    if type_rule[j] == 'int':
-                                        stemp_list_f[skey[j]] = int(cell.value)
-                                    else:
-                                        stemp_list_f[skey[j]] = str(cell.value)
-
+                                stemp_list_f[skey[j]] = str(cell.value)
 
                 if temp_list_f != {}:
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
@@ -165,30 +152,29 @@ class AppThread():
                 # server go
                 self.gengo(out_file_name, skey, type_rule)
 
+                self.genConfigGo(out_file_name)
+
                 del stemp_list_f
                 del sdata_dict_f
 
             t1 = time.time()
             if error > 0:
-                print("\n" + out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0),
+                print("[导出完毕]" + out_file_name + "  行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0),
                       "[有错误未定义类型：" + str(error) + "]")
-                debug("配置表错误！", f[0],'[错误：]',str(error))
+                debug("[错误][配置表错误-键值问题]", f[0], '[错误：]', str(error))
             else:
-                print("\n" + out_file_name + " 导出完毕！！ 行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
+                print("[导出完毕]" + out_file_name + "  行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
 
         except:
-            debug("配置表错误！", f[0], sys.exc_info())
-            debug(f[0], "key", key)
-            debug(f[0], "type", type_rule)
-            print("配置表错误！")
-            print(f[0], sys.exc_info())
-            print("key", key)
-            print("type", type_rule)
-            traceback.print_tb(sys.exc_info()[2])
+            debug("[错误][配置表错误]", f[0], sys.exc_info())
+            # debug("[错误][配置表错误]", f[0], "键", key)
+            # debug("[错误][配置表错误]", f[0], "类型", type_rule)
+            debug("----------------------------", f[0], traceback.print_tb(sys.exc_info()[2]) )
+            # traceback.print_tb(sys.exc_info()[2])
 
     def write_file(self, filename, buf):
         totxt = codecs.open(filename, 'w', "utf-8")
-        totxt.write(str(json.dumps(buf,ensure_ascii=False)))
+        totxt.write(str(json.dumps(buf, ensure_ascii=False)))
         totxt.close()
 
     def gents(self, file, key, type_rule):
@@ -280,7 +266,7 @@ class AppThread():
 
         return out
 
-    def genConfigGo(self, filelist):
+    def genConfigGo(self, fname):
         version = '3.4'
 
         # 生成TS文件
@@ -288,16 +274,17 @@ class AppThread():
             time.time())) + '\n * @导出工具 v' + version + ' \n * @Author jhj \n * @QQ 8510001 \n */ \n'
 
         # 字段
-        field = ""
-        for k in filelist:
-            # print(k[0])
-            field += '	case File' + self.toBigWord(k[0]) + ':\n		return &' + self.toBigWord(k[0]) + 'M\n'
+        global gbfield, gbconst
+        # field = ""
+        # for k in filelist:
+        #     # print(k[0])
+        gbfield += '	case File' + self.toBigWord(fname) + ':\n		return &' + self.toBigWord(fname) + 'M\n'
 
-        const = ""
-        for k in filelist:
-            const += '	File' + self.toBigWord(k[0]) + ' string = "' + k[0] + '.json"  \n'
+        # const = ""
+        # for k in filelist:
+        gbconst += '	File' + self.toBigWord(fname) + ' string = "' + fname + '.json"  \n'
 
-        script = ts_waring + 'package configdef \n\nconst (\n   ' + const + ')\nfunc LoadStrut(fileName string) interface {}  {\n	switch fileName {\n  ' + field + '	default:\n		return nil\n	}\n    return nil\n}'
+        script = ts_waring + 'package configdef \n\nconst (\n   ' + gbconst + ')\nfunc LoadStrut(fileName string) interface {}  {\n	switch fileName {\n  ' + gbfield + '	default:\n		return nil\n	}\n    return nil\n}'
         totxt_b = codecs.open(self.outServerGo + '/configdef.go', 'w', "utf-8")
         totxt_b.write(script)
         totxt_b.close()
