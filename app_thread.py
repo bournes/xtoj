@@ -89,7 +89,7 @@ class AppThread():
 
                         if cell.value is not None:
                             # print("type_rule规则", cell.value, j)
-                            type_rule[j] = str(cell.value)
+                            type_rule[j] = str(cell.value).strip()
 
                         else:
                             continue
@@ -97,7 +97,7 @@ class AppThread():
                     if i == self.xls_rule_from:  # rule
                         if cell.value is not None:
                             # print("前端 后端 或略规则", cell.value, j)
-                            rule[j] = str(cell.value)
+                            rule[j] = str(cell.value).strip()
 
                         else:
                             continue
@@ -109,7 +109,7 @@ class AppThread():
                                 # 容错判断下这个键位的规则有没有
                                 if j in type_rule:
                                     # print("导出Client", cell.value, j, rule[j])
-                                    key[j] = str(cell.value)
+                                    key[j] = str(cell.value).strip()
                                 else:
                                     error += 1
 
@@ -117,7 +117,7 @@ class AppThread():
                                 # 容错判断下这个键位的规则有没有
                                 if j in type_rule:
                                     # print("导出Server", cell.value, j, rule[j])
-                                    skey[j] = str(cell.value)
+                                    skey[j] = str(cell.value).strip()
                                 else:
                                     error += 1
 
@@ -127,9 +127,43 @@ class AppThread():
                     if i >= self.xls_content_from:  # 内容
                         if j <= len(rule):
                             if j in key:
-                                temp_list_f[key[j]] = str(cell.value)
+
+                                if type_rule[j] == 'int':
+                                    if type(cell.value) == str:
+                                        if len(cell.value) == 0 or len(str(cell.value).strip()) == 0:
+                                            temp_list_f[key[j]] = 0
+                                        else:
+                                            temp_list_f[key[j]] = round(int(str(cell.value).strip()))
+                                    elif cell.value is None:
+                                        temp_list_f[key[j]] = 0
+                                    else:
+                                        temp_list_f[key[j]] = round(int(cell.value))
+
+                                elif type_rule[j] == 'string':
+                                    temp_list_f[key[j]] = str(cell.value)
+                                elif type_rule[j] == 'bool':
+                                    temp_list_f[key[j]] = bool(cell.value)
+                                else:
+                                    debug("[警告-前端配置值错误]" + out_file_name + " 行-列-类型-值", i, j,type_rule[j], cell.value)
+
                             if j in skey:
-                                stemp_list_f[skey[j]] = str(cell.value)
+                                if type_rule[j] == 'int':
+                                    if type(cell.value) == str:
+                                        if len(cell.value) == 0 or len(str(cell.value).strip()) == 0:
+                                            stemp_list_f[skey[j]] = 0
+                                        else:
+                                            stemp_list_f[skey[j]] = round(int(str(cell.value).strip()))
+                                    elif cell.value is None:
+                                        stemp_list_f[skey[j]] = 0
+                                    else:
+                                        stemp_list_f[skey[j]] = round(int(cell.value))
+
+                                elif type_rule[j] == 'string':
+                                    stemp_list_f[skey[j]] = str(cell.value)
+                                elif type_rule[j] == 'bool':
+                                    stemp_list_f[skey[j]] = bool(cell.value)
+                                else:
+                                    debug("[警告-后端配置值错误]" + out_file_name + " 行-列-类型-值", i, j, type_rule[j], cell.value)
 
                 if temp_list_f != {}:
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
@@ -169,8 +203,7 @@ class AppThread():
             debug("[错误][配置表错误]", f[0], sys.exc_info())
             # debug("[错误][配置表错误]", f[0], "键", key)
             # debug("[错误][配置表错误]", f[0], "类型", type_rule)
-            debug("----------------------------", f[0], traceback.print_tb(sys.exc_info()[2]) )
-            # traceback.print_tb(sys.exc_info()[2])
+            traceback.print_tb(sys.exc_info()[2])
 
     def write_file(self, filename, buf):
         totxt = codecs.open(filename, 'w', "utf-8")
@@ -214,7 +247,7 @@ class AppThread():
 
     def changeInt(self, type):
         if type.lower() == 'int':
-            return 'uint64'
+            return 'int64'
         else:
             return type
 
