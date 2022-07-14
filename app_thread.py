@@ -76,8 +76,8 @@ class AppThread():
             type_rule = {}
             data_dict_f = {}
             sdata_dict_f = {}
-            error = 0
             i = 0
+            pkey = ''
             for row in ws.rows:
                 temp_list_f = {}
                 stemp_list_f = {}
@@ -85,6 +85,13 @@ class AppThread():
                 j = 0
                 for cell in row:
                     j += 1
+                    if i == 1 and j == 1:  # 主KEY
+                        if cell.value is not None:
+                            pkey = cell.value
+                        else:
+                            debug("[错误-没有主键]" + out_file_name + " 行-列-值", i, j, cell.value)
+                            break
+
                     if i == self.xls_type_from:  # type
 
                         if cell.value is not None:
@@ -111,7 +118,7 @@ class AppThread():
                                     # print("导出Client", cell.value, j, rule[j])
                                     key[j] = str(cell.value).strip()
                                 else:
-                                    error += 1
+                                    debug("[错误--定义了client或both 却没有定义 键或规则 行 - 列]", i, j, out_file_name)
 
                             if str(rule[j]).lower() == "server" or str(rule[j]).lower() == "both":
                                 # 容错判断下这个键位的规则有没有
@@ -119,7 +126,8 @@ class AppThread():
                                     # print("导出Server", cell.value, j, rule[j])
                                     skey[j] = str(cell.value).strip()
                                 else:
-                                    error += 1
+                                    debug("[错误--定义了client或both 却没有定义 键或规则 行 - 列]", i, j, out_file_name)
+
 
                         else:
                             break
@@ -127,7 +135,6 @@ class AppThread():
                     if i >= self.xls_content_from:  # 内容
                         if j <= len(rule):
                             if j in key:
-
                                 if type_rule[j] == 'int':
                                     if type(cell.value) == str:
                                         if len(cell.value) == 0 or len(str(cell.value).strip()) == 0:
@@ -144,7 +151,7 @@ class AppThread():
                                 elif type_rule[j] == 'bool':
                                     temp_list_f[key[j]] = bool(cell.value)
                                 else:
-                                    debug("[警告-前端配置值错误]" + out_file_name + " 行-列-类型-值", i, j,type_rule[j], cell.value)
+                                    debug("[警告-前端配置值错误]" + out_file_name + " 行-列-类型-值", i, j, type_rule[j], cell.value)
 
                             if j in skey:
                                 if type_rule[j] == 'int':
@@ -166,8 +173,10 @@ class AppThread():
                                     debug("[警告-后端配置值错误]" + out_file_name + " 行-列-类型-值", i, j, type_rule[j], cell.value)
 
                 if temp_list_f != {}:
+                    temp_list_f = self.auto_pkey(temp_list_f, pkey)
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
                 if stemp_list_f != {}:
+                    stemp_list_f = self.auto_pkey(stemp_list_f, pkey)
                     sdata_dict_f[stemp_list_f[self.xls_key_id]] = stemp_list_f
 
             if data_dict_f:
@@ -192,12 +201,7 @@ class AppThread():
                 del sdata_dict_f
 
             t1 = time.time()
-            if error > 0:
-                print("[导出完毕]" + out_file_name + "  行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0),
-                      "[有错误未定义类型：" + str(error) + "]")
-                debug("[错误][配置表错误-键值问题]", f[0], '[错误：]', str(error))
-            else:
-                print("[导出完毕]" + out_file_name + "  行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
+            print("[导出完毕]" + out_file_name + "  行：", ws.max_row, '列：', ws.max_column, " 耗时：" + str(t1 - t0))
 
         except:
             debug("[错误][配置表错误]", f[0], sys.exc_info())
@@ -209,6 +213,20 @@ class AppThread():
         totxt = codecs.open(filename, 'w', "utf-8")
         totxt.write(str(json.dumps(buf, ensure_ascii=False)))
         totxt.close()
+
+    # 自填充主键
+    def auto_pkey(self, array, pkey):
+        if not hasattr(array, self.xls_key_id):
+            array[self.xls_key_id] = ''  # 定义一个空的
+            # 判断下主键是多个还是单个
+            if len(pkey.split(',')) > 1:
+                for k in pkey.split(','):
+                    for dkey in array:
+                        if dkey == k:
+                            array[self.xls_key_id] += str(array[dkey])
+            else:
+                array[self.xls_key_id] = str(array[pkey])
+        return array
 
     def gents(self, file, key, type_rule):
         version = '3.4'
