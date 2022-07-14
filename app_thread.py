@@ -173,10 +173,31 @@ class AppThread():
                                     debug("[警告-后端配置值错误]" + out_file_name + " 行-列-类型-值", i, j, type_rule[j], cell.value)
 
                 if temp_list_f != {}:
-                    temp_list_f = self.auto_pkey(temp_list_f, pkey)
+                    if self.xls_key_id not in temp_list_f:
+                        temp_list_f[self.xls_key_id] = ''  # 定义一个空的
+                        # 判断下主键是多个还是单个
+                        if len(pkey.split(',')) > 1:
+                            for k in pkey.split(','):
+                                for dkey in temp_list_f:
+                                    if dkey == k:
+                                        temp_list_f[self.xls_key_id] += str(temp_list_f[dkey])
+                        else:
+                            temp_list_f[self.xls_key_id] = str(temp_list_f[pkey])
+
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
+                    
                 if stemp_list_f != {}:
-                    stemp_list_f = self.auto_pkey(stemp_list_f, pkey)
+                    if self.xls_key_id not in stemp_list_f:
+                        stemp_list_f[self.xls_key_id] = ''  # 定义一个空的
+                        # 判断下主键是多个还是单个
+                        if len(pkey.split(',')) > 1:
+                            for k in pkey.split(','):
+                                for dkey in stemp_list_f:
+                                    if dkey == k:
+                                        stemp_list_f[self.xls_key_id] += str(stemp_list_f[dkey])
+                        else:
+                            stemp_list_f[self.xls_key_id] = str(stemp_list_f[pkey])
+
                     sdata_dict_f[stemp_list_f[self.xls_key_id]] = stemp_list_f
 
             if data_dict_f:
@@ -213,20 +234,6 @@ class AppThread():
         totxt = codecs.open(filename, 'w', "utf-8")
         totxt.write(str(json.dumps(buf, ensure_ascii=False)))
         totxt.close()
-
-    # 自填充主键
-    def auto_pkey(self, array, pkey):
-        if not hasattr(array, self.xls_key_id):
-            array[self.xls_key_id] = ''  # 定义一个空的
-            # 判断下主键是多个还是单个
-            if len(pkey.split(',')) > 1:
-                for k in pkey.split(','):
-                    for dkey in array:
-                        if dkey == k:
-                            array[self.xls_key_id] += str(array[dkey])
-            else:
-                array[self.xls_key_id] = str(array[pkey])
-        return array
 
     def gents(self, file, key, type_rule):
         version = '3.4'
