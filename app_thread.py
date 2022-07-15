@@ -185,7 +185,7 @@ class AppThread():
                             temp_list_f[self.xls_key_id] = str(temp_list_f[pkey])
 
                     data_dict_f[temp_list_f[self.xls_key_id]] = temp_list_f
-                    
+
                 if stemp_list_f != {}:
                     if self.xls_key_id not in stemp_list_f:
                         stemp_list_f[self.xls_key_id] = ''  # 定义一个空的
@@ -272,7 +272,7 @@ class AppThread():
 
     def changeInt(self, type):
         if type.lower() == 'int':
-            return 'int64'
+            return 'uint64'
         else:
             return type
 
@@ -291,7 +291,7 @@ class AppThread():
                 k] + '"`\n'
 
         script = ts_waring + 'package configdef \n\ntype ' + self.toBigWord(
-            file) + ' struct {\n' + field + '}\n\nvar ' + self.toBigWord(file) + 'M  map[string]*' + self.toBigWord(
+            file) + ' struct {\n' + field + '}\n\nvar ' + self.toBigWord(file) + 'M  map[uint64]*' + self.toBigWord(
             file)
         totxt_b = codecs.open(self.outServerGo + '/' + file + '.go', 'w', "utf-8")
         totxt_b.write(script)
